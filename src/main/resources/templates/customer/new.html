@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+
+<html>
+<head lang="en">
+    <title>Create New Customer</title>
+
+    <meta charset="utf-8"/>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"/>
+
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.0/css/bootstrap.min.css"
+          integrity="sha384-9gVQ4dYFwwWSjIDZnLEWnxCjeSWFphJiwGPXr1jddIhOegiu1FwO5qRGvFXOdJZ4" crossorigin="anonymous">
+</head>
+
+<body>
+<h1>Create New Customer</h1>
+<div class="container-fluid">
+<form name="new_customer" data-th-action="@{/customer}" data-th-object="${customer}" method="post">
+
+    <div class="form-group">
+        <label for="name">Name</label>
+        <input id="name" class="form-control" data-th-field="${customer.name}"/>
+    </div>
+
+    <button name="save" class="btn btn-primary">Submit</button>
+</form>
+</div>
+</body>
+</html>

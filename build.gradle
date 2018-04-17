@@ -18,8 +18,12 @@ repositories {
 
 dependencies {
     compile 'org.springframework.boot:spring-boot-starter-data-jpa'
+    compile 'org.springframework.boot:spring-boot-starter-web'
+    compile 'org.springframework.boot:spring-boot-starter-thymeleaf'
     compile 'org.flywaydb:flyway-core'
     compile 'org.apache.commons:commons-lang3'
     runtime 'com.h2database:h2'
     testCompile 'org.springframework.boot:spring-boot-starter-test'
+    testCompile 'net.sourceforge.htmlunit:htmlunit'
+    testCompile 'org.flywaydb.flyway-test-extensions:flyway-spring-test:5.0.0'
 }
