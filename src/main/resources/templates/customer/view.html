@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+
+<html>
+<head lang="en">
+    <title>View Customer</title>
+
+    <meta charset="utf-8"/>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"/>
+
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.0/css/bootstrap.min.css"
+          integrity="sha384-9gVQ4dYFwwWSjIDZnLEWnxCjeSWFphJiwGPXr1jddIhOegiu1FwO5qRGvFXOdJZ4" crossorigin="anonymous">
+</head>
+
+<body>
+<h1>View Customer</h1>
+<div class="container">
+    <table class="table">
+        <tbody>
+        <tr>
+            <th scope="row">Name</th>
+            <td data-th-text="${customer.name}">Mark</td>
+        </tr>
+        <tr>
+            <th scope="row">Created On</th>
+            <td data-th-text="${customer.createdOn}">Wed Apr 18 22:23:11 CEST 2018</td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+</body>
+</html>

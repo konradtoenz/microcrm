@@ -60,7 +60,7 @@ public class CustomerHtmlUnitTest {
     private Customer createCustomer() throws Exception {
         Customer customer = randomCustomer();
 
-        HtmlPage createNewCustomerPage = this.webClient.getPage("http://localhost:"  + this.localServerPort  +"/customer/new");
+        HtmlPage createNewCustomerPage = this.webClient.getPage("http://localhost:"  + this.localServerPort  +"/customers/new");
         HtmlForm createNewCustomerForm = createNewCustomerPage.getFormByName("new_customer");
         createNewCustomerForm.getInputByName("name").type(customer.getName());
 

@@ -2,14 +2,17 @@ package de.gieche.microcrm.customer;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.ModelAndView;
+
+import java.util.Optional;
 
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
 @Controller
-@RequestMapping("/customer")
+@RequestMapping("/customers")
 public class CustomerController {
 
     private final CustomerRepository customerRepository;
@@ -26,9 +29,15 @@ public class CustomerController {
     }
 
     @RequestMapping(method = POST)
-    @ResponseBody
     @SuppressWarnings("unused") // Used by Spring MVC.
     public String saveCustomer(Customer customer) {
-        return this.customerRepository.save(customer).toString();
+        return "redirect:/customers/" + this.customerRepository.save(customer).getId();
+    }
+
+    @RequestMapping(path = "/{id}", method = GET)
+    @SuppressWarnings("unused") // Used by Spring MVC.
+    public ModelAndView viewCustomer(@PathVariable long id) {
+        Optional<Customer> customer = this.customerRepository.findById(id);
+        return new ModelAndView("customer/view", "customer", customer.orElse(null));
     }
 }
