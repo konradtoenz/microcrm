@@ -16,7 +16,6 @@ final class CustomerTestUtils {
     static Customer randomCustomer() {
         Customer customer = new Customer();
         customer.setName(random(16));
-        customer.setStatus(randomStatus());
         customer.setNotes(randomNotes());
 
         return customer;
@@ -29,9 +28,5 @@ final class CustomerTestUtils {
         }
 
         return notes;
-    }
-
-    private static CustomerStatus randomStatus() {
-        return CustomerStatus.values()[RandomUtils.nextInt(0, CustomerStatus.values().length - 1)];
     }
 }

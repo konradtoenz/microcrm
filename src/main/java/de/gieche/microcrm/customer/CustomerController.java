@@ -40,4 +40,14 @@ public class CustomerController {
         Optional<Customer> customer = this.customerRepository.findById(id);
         return new ModelAndView("customer/view", "customer", customer.orElse(null));
     }
+
+    @RequestMapping(path = "/{id}/status", method = POST)
+    @SuppressWarnings("unused") // Used by Spring MVC.
+    public String updateStatus(@PathVariable long id, CustomerStatus status) {
+        Customer customer = this.customerRepository.findById(id).orElseThrow(RuntimeException::new);
+        customer.setStatus(status);
+        this.customerRepository.save(customer);
+
+        return "redirect:/customers/" + id;
+    }
 }

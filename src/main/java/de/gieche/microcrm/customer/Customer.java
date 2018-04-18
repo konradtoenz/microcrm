@@ -15,6 +15,7 @@ import javax.persistence.TemporalType;
 import java.util.Date;
 import java.util.Set;
 
+import static de.gieche.microcrm.customer.CustomerStatus.PROSPECTIVE;
 import static javax.persistence.FetchType.EAGER;
 
 @Entity
@@ -33,7 +34,7 @@ public class Customer {
     private Date createdOn;
 
     @Enumerated(EnumType.STRING)
-    private CustomerStatus status;
+    private CustomerStatus status = PROSPECTIVE;
 
     @ElementCollection(fetch = EAGER)
     @Column(name = "note")
