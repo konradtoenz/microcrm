@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+
+<html>
+<head lang="en">
+    <title>Customers</title>
+
+    <meta charset="utf-8"/>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"/>
+
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.0/css/bootstrap.min.css"
+          integrity="sha384-9gVQ4dYFwwWSjIDZnLEWnxCjeSWFphJiwGPXr1jddIhOegiu1FwO5qRGvFXOdJZ4" crossorigin="anonymous">
+</head>
+
+<body>
+<h1>Customers</h1>
+<div class="container-fluid">
+<table class="table table-striped">
+    <tr>
+        <th>Name</th>
+        <th>Status</th>
+        <th>Created on</th>
+    </tr>
+    <tr data-th-each="customer : ${customers}">
+        <td data-th-text="${customer.name}">Name</td>
+        <td data-th-text="${customer.status}">Status</td>
+        <td data-th-text="${customer.createdOn}">Created on</td>
+    </tr>
+</table>
+<a href="/customers/new"><button class="btn btn-primary">Add Customer</button></a>
+</div>
+</body>
+</html>

@@ -66,6 +66,18 @@ public class CustomerHtmlUnitTest {
     }
 
     @Test
+    public void should_list_customers() throws Exception {
+        createCustomer(randomCustomer());
+        createCustomer(randomCustomer());
+        createCustomer(randomCustomer());
+
+        HtmlPage listCustomersPage = this.webClient.getPage("http://localhost:" + this.localServerPort + "/customers");
+        for (Customer customer : this.customerRepository.findAll()) {
+            assertThat(listCustomersPage.asText()).contains(customer.getName());
+        }
+    }
+
+    @Test
     public void should_set_status() throws Exception {
         long id = createCustomer(randomCustomer());
 
