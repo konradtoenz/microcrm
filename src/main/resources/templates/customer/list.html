@@ -23,6 +23,9 @@
     </tr>
     <tr data-th-each="customer : ${customers}">
         <td data-th-text="${customer.name}">Name</td>
+        <td data-th-text="${customer.street}">Street</td>
+        <td data-th-text="${customer.zipCode}">Zip Code</td>
+        <td data-th-text="${customer.city}">City</td>
         <td data-th-text="${customer.status}">Status</td>
         <td data-th-text="${customer.createdOn}">Created on</td>
     </tr>

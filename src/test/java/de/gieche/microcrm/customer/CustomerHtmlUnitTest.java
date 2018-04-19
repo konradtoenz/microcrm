@@ -60,7 +60,7 @@ public class CustomerHtmlUnitTest {
         assertThat(this.customerRepository.count()).isEqualTo(1);
 
         Customer createdCustomer = customerWithId(id);
-        assertThat(createdCustomer.getName()).isEqualTo(customer.getName());
+        assertThat(createdCustomer).isEqualToIgnoringGivenFields(customer, "id", "createdOn", "notes");
         assertThat(createdCustomer.getId()).isPositive();
         assertThat(createdCustomer.getCreatedOn()).isBefore(new Date());
     }
@@ -74,6 +74,9 @@ public class CustomerHtmlUnitTest {
         HtmlPage listCustomersPage = this.webClient.getPage("http://localhost:" + this.localServerPort + "/customers");
         for (Customer customer : this.customerRepository.findAll()) {
             assertThat(listCustomersPage.asText()).contains(customer.getName());
+            assertThat(listCustomersPage.asText()).contains(customer.getStreet());
+            assertThat(listCustomersPage.asText()).contains(customer.getZipCode());
+            assertThat(listCustomersPage.asText()).contains(customer.getCity());
         }
     }
 
@@ -122,6 +125,9 @@ public class CustomerHtmlUnitTest {
         HtmlPage createNewCustomerPage = this.webClient.getPage("http://localhost:" + this.localServerPort + "/customers/new");
         HtmlForm createNewCustomerForm = createNewCustomerPage.getFormByName("new_customer");
         createNewCustomerForm.getInputByName("name").type(customer.getName());
+        createNewCustomerForm.getInputByName("street").type(customer.getStreet());
+        createNewCustomerForm.getInputByName("zipCode").type(customer.getZipCode());
+        createNewCustomerForm.getInputByName("city").type(customer.getCity());
 
         HtmlPage customerCreatedPage = createNewCustomerForm.getButtonByName("save").click();
         assertThat(customerCreatedPage.asText()).contains(customer.getName());
