@@ -60,6 +60,15 @@
             <td data-th-text="${customer.createdOn}">Wed Apr 18 22:23:11 CEST 2018</td>
             <td></td>
         </tr>
+        <tr>
+            <th scope="row">Notes</th>
+            <td>
+                <div data-th-each="note : ${customer.notes}" class="card">
+                    <div data-th-text="${note}" class="card-body">Note</div>
+                </div>
+            </td>
+            <td></td>
+        </tr>
         </tbody>
     </table>
     <a name="add_note_anchor" data-th-href="@{'/customers/' + ${customer.id} + '/notes/new'}">

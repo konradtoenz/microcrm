@@ -108,18 +108,20 @@ public class CustomerHtmlUnitTest {
 
     @Test
     public void should_add_note() throws Exception {
-        Customer customer1 = randomCustomer();
-        customer1.setNotes(new HashSet<>());
-        long id = createCustomer(customer1);
+        Customer customer = randomCustomer();
+        customer.setNotes(new HashSet<>());
+        long id = createCustomer(customer);
         String note = random(128);
 
         HtmlPage viewCustomerPage =
                 this.webClient.getPage("http://localhost:" + this.localServerPort + "/customers/" + id);
-        HtmlAnchor addNoteAnchor = viewCustomerPage.getAnchorByName("add_note_anchor");
-        HtmlPage addNotePage = addNoteAnchor.click();
-        HtmlForm createNewCustomerForm = addNotePage.getFormByName("new_note");
-        createNewCustomerForm.getTextAreaByName("note").type(note);
-        ((HtmlButton) addNotePage.getByXPath("//button[text() = 'Submit']").get(0)).click();
+        HtmlPage addNotePage = viewCustomerPage.getAnchorByName("add_note_anchor").click();
+
+        HtmlForm createNewNoteForm = addNotePage.getFormByName("new_note");
+        createNewNoteForm.getTextAreaByName("note").type(note);
+        viewCustomerPage = ((HtmlButton) addNotePage.getByXPath("//button[text() = 'Submit']").get(0)).click();
+
+        assertThat(viewCustomerPage.asText()).contains(note);
 
         Set<String> notes = customerWithId(id).getNotes();
         assertThat(notes.size()).isEqualTo(1);
