@@ -10,18 +10,24 @@
 
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.0/css/bootstrap.min.css"
           integrity="sha384-9gVQ4dYFwwWSjIDZnLEWnxCjeSWFphJiwGPXr1jddIhOegiu1FwO5qRGvFXOdJZ4" crossorigin="anonymous">
+
 </head>
 
 <body>
 <h1>Customers</h1>
 <div class="container-fluid">
-<table class="table table-striped">
+<table class="table table-striped table-hover">
+    <caption>Click on customer to view details.</caption>
     <tr>
         <th>Name</th>
+        <th>Street</th>
+        <th>Zip Code</th>
+        <th>City</th>
         <th>Status</th>
         <th>Created on</th>
     </tr>
-    <tr data-th-each="customer : ${customers}">
+    <tr data-th-each="customer : ${customers}" data-th-data-href="@{'/customers/' + ${customer.id}}"
+        style="cursor: pointer">
         <td data-th-text="${customer.name}">Name</td>
         <td data-th-text="${customer.street}">Street</td>
         <td data-th-text="${customer.zipCode}">Zip Code</td>
@@ -32,5 +38,13 @@
 </table>
 <a href="/customers/new"><button class="btn btn-primary">Add Customer</button></a>
 </div>
+<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
+        integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
+        crossorigin="anonymous"></script>
+<script>
+    $('tr[data-href]').on("click", function() {
+        document.location = $(this).data('href');
+    });
+</script>
 </body>
 </html>

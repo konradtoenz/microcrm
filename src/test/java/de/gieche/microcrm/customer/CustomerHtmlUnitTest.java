@@ -1,10 +1,13 @@
 package de.gieche.microcrm.customer;
 
+import com.gargoylesoftware.htmlunit.Page;
 import com.gargoylesoftware.htmlunit.WebClient;
 import com.gargoylesoftware.htmlunit.html.DomElement;
+import com.gargoylesoftware.htmlunit.html.HtmlAnchor;
 import com.gargoylesoftware.htmlunit.html.HtmlButton;
 import com.gargoylesoftware.htmlunit.html.HtmlForm;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
+import com.gargoylesoftware.htmlunit.html.HtmlTableRow;
 import org.assertj.core.api.ObjectAssert;
 import org.flywaydb.test.FlywayTestExecutionListener;
 import org.flywaydb.test.annotation.FlywayTest;
@@ -78,6 +81,18 @@ public class CustomerHtmlUnitTest {
             assertThat(listCustomersPage.asText()).contains(customer.getZipCode());
             assertThat(listCustomersPage.asText()).contains(customer.getCity());
         }
+    }
+
+    @Test
+    public void should_have_links_to_details_in_list() throws Exception {
+        Customer customer = randomCustomer();
+        customer.setStatus(PROSPECTIVE);
+        createCustomer(customer);
+
+        HtmlPage listCustomersPage = this.webClient.getPage("http://localhost:" + this.localServerPort + "/customers");
+        HtmlTableRow row = (HtmlTableRow)
+                listCustomersPage.getByXPath("//tr[td = '" + customer.getName() + "']").get(0);
+        assertThat(findSetStatusButton(row.click(), CURRENT)).isNotNull();
     }
 
     @Test
