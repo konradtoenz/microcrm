@@ -29,6 +29,11 @@ public class CustomerController {
         return "customer/new";
     }
 
+    @RequestMapping(path = "/{id}/notes/new", method = GET)
+    public ModelAndView newNote(@PathVariable("id") String id) {
+        return new ModelAndView("customer/note/new", "customerId", id);
+    }
+
     @RequestMapping(method = POST)
     public String saveCustomer(Customer customer) {
         return "redirect:/customers/" + this.customerRepository.save(customer).getId();
@@ -54,6 +59,15 @@ public class CustomerController {
     public String updateStatus(@PathVariable long id, CustomerStatus status) {
         Customer customer = this.customerRepository.findById(id).orElseThrow(RuntimeException::new);
         customer.setStatus(status);
+        this.customerRepository.save(customer);
+
+        return "redirect:/customers/" + id;
+    }
+
+    @RequestMapping(path = "/{id}/notes", method = POST)
+    public String addNote(@PathVariable long id, String note) {
+        Customer customer = this.customerRepository.findById(id).orElseThrow(RuntimeException::new);
+        customer.getNotes().add(note);
         this.customerRepository.save(customer);
 
         return "redirect:/customers/" + id;

@@ -1,6 +1,5 @@
 package de.gieche.microcrm.customer;
 
-import com.gargoylesoftware.htmlunit.Page;
 import com.gargoylesoftware.htmlunit.WebClient;
 import com.gargoylesoftware.htmlunit.html.DomElement;
 import com.gargoylesoftware.htmlunit.html.HtmlAnchor;
@@ -23,12 +22,15 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
 
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import static de.gieche.microcrm.customer.CustomerStatus.CURRENT;
 import static de.gieche.microcrm.customer.CustomerStatus.NON_ACTIVE;
 import static de.gieche.microcrm.customer.CustomerStatus.PROSPECTIVE;
 import static de.gieche.microcrm.customer.CustomerTestUtils.randomCustomer;
+import static org.apache.commons.lang3.RandomStringUtils.random;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -102,6 +104,26 @@ public class CustomerHtmlUnitTest {
         setStatus(id, viewCustomerPageForId(id), CURRENT);
         setStatus(id, viewCustomerPageForId(id), NON_ACTIVE);
         setStatus(id, viewCustomerPageForId(id), PROSPECTIVE);
+    }
+
+    @Test
+    public void should_add_note() throws Exception {
+        Customer customer1 = randomCustomer();
+        customer1.setNotes(new HashSet<>());
+        long id = createCustomer(customer1);
+        String note = random(128);
+
+        HtmlPage viewCustomerPage =
+                this.webClient.getPage("http://localhost:" + this.localServerPort + "/customers/" + id);
+        HtmlAnchor addNoteAnchor = viewCustomerPage.getAnchorByName("add_note_anchor");
+        HtmlPage addNotePage = addNoteAnchor.click();
+        HtmlForm createNewCustomerForm = addNotePage.getFormByName("new_note");
+        createNewCustomerForm.getTextAreaByName("note").type(note);
+        ((HtmlButton) addNotePage.getByXPath("//button[text() = 'Submit']").get(0)).click();
+
+        Set<String> notes = customerWithId(id).getNotes();
+        assertThat(notes.size()).isEqualTo(1);
+        assertThat(notes.iterator().next()).isEqualTo(note);
     }
 
     private void setStatus(long customerId, HtmlPage viewCustomerPage, CustomerStatus setToStatus) throws Exception {
