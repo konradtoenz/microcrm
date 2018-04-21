@@ -1,25 +1,14 @@
 package de.gieche.microcrm.customer;
 
-import com.gargoylesoftware.htmlunit.WebClient;
 import com.gargoylesoftware.htmlunit.html.DomElement;
-import com.gargoylesoftware.htmlunit.html.HtmlAnchor;
 import com.gargoylesoftware.htmlunit.html.HtmlButton;
 import com.gargoylesoftware.htmlunit.html.HtmlForm;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import com.gargoylesoftware.htmlunit.html.HtmlTableRow;
 import org.assertj.core.api.ObjectAssert;
-import org.flywaydb.test.FlywayTestExecutionListener;
 import org.flywaydb.test.annotation.FlywayTest;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.web.server.LocalServerPort;
-import org.springframework.test.context.TestExecutionListeners;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
 
 import java.util.Date;
 import java.util.HashSet;
@@ -33,28 +22,10 @@ import static de.gieche.microcrm.customer.CustomerTestUtils.randomCustomer;
 import static org.apache.commons.lang3.RandomStringUtils.random;
 import static org.assertj.core.api.Assertions.assertThat;
 
-@RunWith(SpringJUnit4ClassRunner.class)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@TestExecutionListeners({ DependencyInjectionTestExecutionListener.class, FlywayTestExecutionListener.class })
-public class CustomerHtmlUnitTest {
+public class CustomerHtmlUnitTest extends WebClientTest {
 
     @Autowired
     private CustomerRepository customerRepository;
-
-    @LocalServerPort
-    protected int localServerPort;
-
-    private WebClient webClient;
-
-    @Before
-    public void initWebClient() {
-        this.webClient = new WebClient();
-    }
-
-    @After
-    public void closeWebClient() {
-        this.webClient.close();
-    }
 
     @Test
     @FlywayTest
@@ -76,7 +47,7 @@ public class CustomerHtmlUnitTest {
         createCustomer(randomCustomer());
         createCustomer(randomCustomer());
 
-        HtmlPage listCustomersPage = this.webClient.getPage("http://localhost:" + this.localServerPort + "/customers");
+        HtmlPage listCustomersPage = gotoCustomerListPage();
         for (Customer customer : this.customerRepository.findAll()) {
             assertThat(listCustomersPage.asText()).contains(customer.getName());
             assertThat(listCustomersPage.asText()).contains(customer.getStreet());
@@ -91,7 +62,7 @@ public class CustomerHtmlUnitTest {
         customer.setStatus(PROSPECTIVE);
         createCustomer(customer);
 
-        HtmlPage listCustomersPage = this.webClient.getPage("http://localhost:" + this.localServerPort + "/customers");
+        HtmlPage listCustomersPage = gotoCustomerListPage();
         HtmlTableRow row = (HtmlTableRow)
                 listCustomersPage.getByXPath("//tr[td = '" + customer.getName() + "']").get(0);
         assertThat(findSetStatusButton(row.click(), CURRENT)).isNotNull();
@@ -101,9 +72,9 @@ public class CustomerHtmlUnitTest {
     public void should_set_status() throws Exception {
         long id = createCustomer(randomCustomer());
 
-        setStatus(id, viewCustomerPageForId(id), CURRENT);
-        setStatus(id, viewCustomerPageForId(id), NON_ACTIVE);
-        setStatus(id, viewCustomerPageForId(id), PROSPECTIVE);
+        setStatus(id, gotoCustomerDetailsPage(id), CURRENT);
+        setStatus(id, gotoCustomerDetailsPage(id), NON_ACTIVE);
+        setStatus(id, gotoCustomerDetailsPage(id), PROSPECTIVE);
     }
 
     @Test
@@ -113,8 +84,7 @@ public class CustomerHtmlUnitTest {
         long id = createCustomer(customer);
         String note = random(128);
 
-        HtmlPage viewCustomerPage =
-                this.webClient.getPage("http://localhost:" + this.localServerPort + "/customers/" + id);
+        HtmlPage viewCustomerPage = gotoCustomerDetailsPage(id);
         HtmlPage addNotePage = viewCustomerPage.getAnchorByName("add_note_anchor").click();
 
         HtmlForm createNewNoteForm = addNotePage.getFormByName("new_note");
@@ -134,7 +104,8 @@ public class CustomerHtmlUnitTest {
 
         HtmlPage viewCustomerPageWithChangedStatus = statusButton.click();
         for (CustomerStatus customerStatus : CustomerStatus.values()) {
-            ObjectAssert<HtmlButton> htmlButtonAssert = assertThat(findSetStatusButton(viewCustomerPageWithChangedStatus, customerStatus));
+            ObjectAssert<HtmlButton> htmlButtonAssert =
+                    assertThat(findSetStatusButton(viewCustomerPageWithChangedStatus, customerStatus));
             if (customerStatus == setToStatus) {
                 htmlButtonAssert.isNull();
             } else {
@@ -160,29 +131,8 @@ public class CustomerHtmlUnitTest {
         return statusButton;
     }
 
-    private long createCustomer(Customer customer) throws java.io.IOException {
-        HtmlPage createNewCustomerPage = this.webClient.getPage("http://localhost:" + this.localServerPort + "/customers/new");
-        HtmlForm createNewCustomerForm = createNewCustomerPage.getFormByName("new_customer");
-        createNewCustomerForm.getInputByName("name").type(customer.getName());
-        createNewCustomerForm.getInputByName("street").type(customer.getStreet());
-        createNewCustomerForm.getInputByName("zipCode").type(customer.getZipCode());
-        createNewCustomerForm.getInputByName("city").type(customer.getCity());
-
-        HtmlPage customerCreatedPage = createNewCustomerForm.getButtonByName("save").click();
-        assertThat(customerCreatedPage.asText()).contains(customer.getName());
-        assertThat(customerCreatedPage.asText()).contains(customer.getStatus().toString());
-
-        String path = customerCreatedPage.getUrl().getPath();
-
-        return Long.parseLong(path.substring(path.lastIndexOf('/') + 1));
-    }
-
     private Customer customerWithId(long id) {
         return this.customerRepository.findById(id)
                 .orElseThrow(() -> new AssertionError("Customer with ID >" + id + "< could not be found."));
-    }
-
-    private HtmlPage viewCustomerPageForId(long id) throws java.io.IOException {
-        return this.webClient.getPage("http://localhost:" + this.localServerPort + "/customers/" + id);
     }
 }
