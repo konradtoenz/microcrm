@@ -1,6 +1,8 @@
 package de.gieche.microcrm.customer;
 
+import com.gargoylesoftware.htmlunit.Page;
 import com.gargoylesoftware.htmlunit.WebClient;
+import com.gargoylesoftware.htmlunit.html.HtmlButton;
 import com.gargoylesoftware.htmlunit.html.HtmlForm;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import org.flywaydb.test.FlywayTestExecutionListener;
@@ -64,12 +66,26 @@ abstract class WebClientTest {
         createNewCustomerForm.getInputByName("zipCode").type(customer.getZipCode());
         createNewCustomerForm.getInputByName("city").type(customer.getCity());
 
-        HtmlPage customerCreatedPage = createNewCustomerForm.getButtonByName("save").click();
-        assertThat(customerCreatedPage.asText()).contains(customer.getName());
-        assertThat(customerCreatedPage.asText()).contains(customer.getStatus().toString());
+        HtmlPage viewCustomerPage = createNewCustomerForm.getButtonByName("save").click();
+        assertThat(viewCustomerPage.asText()).contains(customer.getName());
+        assertThat(viewCustomerPage.asText()).contains(customer.getStatus().toString());
 
-        String path = customerCreatedPage.getUrl().getPath();
+        for (String note : customer.getNotes()) {
+            createNote(viewCustomerPage, note);
+        }
+
+        String path = viewCustomerPage.getUrl().getPath();
 
         return Long.parseLong(path.substring(path.lastIndexOf('/') + 1));
+    }
+
+    private static void createNote(final HtmlPage viewCustomerPage, String note) throws IOException {
+        HtmlPage addNotePage = viewCustomerPage.getAnchorByName("add_note_anchor").click();
+        assertThat(addNotePage.asText()).contains("Add Note");
+
+        HtmlForm createNewNoteForm = addNotePage.getFormByName("new_note");
+        createNewNoteForm.getTextAreaByName("note").type(note);
+        HtmlPage page = ((HtmlButton) addNotePage.getByXPath("//button[text() = 'Submit']").get(0)).click();
+        assertThat(page.asText()).contains(note);
     }
 }
