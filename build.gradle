@@ -3,6 +3,7 @@ plugins {
     id 'java'
     id 'org.springframework.boot' version '2.0.1.RELEASE'
     id 'io.spring.dependency-management' version '1.0.5.RELEASE'
+    id 'checkstyle'
     id 'pmd'
     id 'findbugs'
 }
@@ -26,4 +27,8 @@ dependencies {
     testCompile 'org.springframework.boot:spring-boot-starter-test'
     testCompile 'net.sourceforge.htmlunit:htmlunit'
     testCompile 'org.flywaydb.flyway-test-extensions:flyway-spring-test:5.0.0'
+}
+
+checkstyle {
+    toolVersion '8.9'
 }

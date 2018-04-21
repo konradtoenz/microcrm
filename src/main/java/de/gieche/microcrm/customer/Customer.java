@@ -3,6 +3,8 @@ package de.gieche.microcrm.customer;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.hibernate.annotations.CreationTimestamp;
 
+import java.util.Date;
+import java.util.Set;
 import javax.persistence.Column;
 import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
@@ -12,8 +14,6 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
-import java.util.Date;
-import java.util.Set;
 
 import static de.gieche.microcrm.customer.CustomerStatus.PROSPECTIVE;
 import static javax.persistence.FetchType.EAGER;
