@@ -61,13 +61,20 @@ public class CustomerHtmlUnitTest extends WebClientTest {
     @Test
     public void should_have_links_to_details_in_list() throws Exception {
         Customer customer = randomCustomer();
-        customer.setStatus(PROSPECTIVE);
         createCustomer(customer);
 
         HtmlPage listCustomersPage = gotoCustomerListPage();
         HtmlTableRow row = (HtmlTableRow)
                 listCustomersPage.getByXPath("//tr[td = '" + customer.getName() + "']").get(0);
-        assertThat(findSetStatusButton(row.click(), CURRENT)).isNotNull();
+        String pageContent = row.<HtmlPage>click().asText();
+        assertThat(pageContent).contains(customer.getName());
+        assertThat(pageContent).contains(customer.getStreet());
+        assertThat(pageContent).contains(customer.getZipCode());
+        assertThat(pageContent).contains(customer.getCity());
+        assertThat(pageContent).contains(customer.getStatus().name());
+        for (String note : customer.getNotes()) {
+            assertThat(pageContent).contains(note);
+        }
     }
 
     @Test
