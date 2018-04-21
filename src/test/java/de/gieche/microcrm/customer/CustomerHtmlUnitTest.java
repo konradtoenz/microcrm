@@ -10,10 +10,13 @@ import org.flywaydb.test.annotation.FlywayTest;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Function;
 
 import static de.gieche.microcrm.customer.CustomerStatus.CURRENT;
 import static de.gieche.microcrm.customer.CustomerStatus.NON_ACTIVE;
@@ -91,7 +94,7 @@ public class CustomerHtmlUnitTest extends WebClientTest {
         HashSet<String> existingNotes = new HashSet<>();
         String existingNote = random(128);
         existingNotes.add(existingNote);
-        long id = createCustomer(randomCustomer(existingNotes));
+        long id = createCustomer(CustomerTestUtils.randomCustomer(existingNotes));
 
         HtmlPage viewCustomerPage = gotoCustomerDetailsPage(id);
         HtmlPage addNotePage = viewCustomerPage.getAnchorByText("Edit").click();
@@ -108,6 +111,42 @@ public class CustomerHtmlUnitTest extends WebClientTest {
         Set<String> notes = customerWithId(id).getNotes();
         assertThat(notes.size()).isEqualTo(1);
         assertThat(notes.iterator().next()).isEqualTo(newNote);
+    }
+
+    @Test
+    public void should_sort_by_name() throws Exception {
+        should_sort(Customer::getName, "Name");
+    }
+
+    @Test
+    public void should_sort_by_street() throws Exception {
+        should_sort(Customer::getStreet, "Street");
+    }
+
+    @Test
+    public void should_sort_by_zip_code() throws Exception {
+        should_sort(Customer::getZipCode, "Zip Code");
+    }
+
+    @Test
+    public void should_sort_by_city() throws Exception {
+        should_sort(Customer::getCity, "City");
+    }
+
+    private void should_sort(Function<Customer, String> getSortedValue, String sortedByName) throws Exception {
+        List<String> values = new ArrayList<>();
+        for (int i = 0; i < 9; i++) {
+            Customer customer = randomCustomer();
+            createCustomer(customer);
+            values.add(getSortedValue.apply(customer));
+        }
+        Collections.sort(values);
+
+        String pageContent = gotoCustomerListPage().getAnchorByText(sortedByName).<HtmlPage>click().asText();
+        for (int i = 1; i < values.size(); i++) {
+            assertThat(pageContent.indexOf(values.get(i)))
+                    .isGreaterThan(pageContent.indexOf(values.get(i - 1)));
+        }
     }
 
     private void setStatus(long customerId, HtmlPage viewCustomerPage, CustomerStatus setToStatus) throws Exception {

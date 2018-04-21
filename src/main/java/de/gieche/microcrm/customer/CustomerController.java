@@ -1,6 +1,7 @@
 package de.gieche.microcrm.customer;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -12,6 +13,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+import static com.google.common.base.CaseFormat.LOWER_CAMEL;
+import static com.google.common.base.CaseFormat.LOWER_UNDERSCORE;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
@@ -51,11 +54,10 @@ public class CustomerController {
     }
 
     @RequestMapping(method = GET)
-    public ModelAndView listCustomers() {
+    public ModelAndView listCustomers(@RequestParam(name = "sort_by") Optional<String> sortByParam) {
         List<Customer> customers = new ArrayList<>();
-        for (Customer customer : this.customerRepository.findAll()) {
-            customers.add(customer);
-        }
+        String sortBy = sortByParam.map(value -> LOWER_UNDERSCORE.to(LOWER_CAMEL, value)).orElse("name");
+        this.customerRepository.findAll(Sort.by(sortBy)).forEach(customers::add);
 
         return new ModelAndView("customer/list", "customers", customers);
     }
