@@ -2,6 +2,7 @@ package de.gieche.microcrm.customer;
 
 import com.gargoylesoftware.htmlunit.html.DomElement;
 import com.gargoylesoftware.htmlunit.html.HtmlButton;
+import com.gargoylesoftware.htmlunit.html.HtmlForm;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import com.gargoylesoftware.htmlunit.html.HtmlTableRow;
 import org.assertj.core.api.ObjectAssert;
@@ -10,12 +11,16 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import static de.gieche.microcrm.customer.CustomerStatus.CURRENT;
 import static de.gieche.microcrm.customer.CustomerStatus.NON_ACTIVE;
 import static de.gieche.microcrm.customer.CustomerStatus.PROSPECTIVE;
 import static de.gieche.microcrm.customer.CustomerTestUtils.randomCustomer;
+import static org.apache.commons.lang3.RandomStringUtils.random;
+import static org.apache.commons.lang3.RandomStringUtils.randomAlphabetic;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class CustomerHtmlUnitTest extends WebClientTest {
@@ -72,6 +77,30 @@ public class CustomerHtmlUnitTest extends WebClientTest {
         setStatus(id, gotoCustomerDetailsPage(id), CURRENT);
         setStatus(id, gotoCustomerDetailsPage(id), NON_ACTIVE);
         setStatus(id, gotoCustomerDetailsPage(id), PROSPECTIVE);
+    }
+
+    @Test
+    public void should_edit_note() throws Exception {
+        HashSet<String> existingNotes = new HashSet<>();
+        String existingNote = random(128);
+        existingNotes.add(existingNote);
+        long id = createCustomer(randomCustomer(existingNotes));
+
+        HtmlPage viewCustomerPage = gotoCustomerDetailsPage(id);
+        HtmlPage addNotePage = viewCustomerPage.getAnchorByText("Edit").click();
+        assertThat(addNotePage.asText()).contains("Edit Note");
+        assertThat(addNotePage.asText()).contains(existingNote);
+
+        HtmlForm createNewNoteForm = addNotePage.getFormByName("new_note");
+        String newNote = randomAlphabetic(60) + " " + random(60);
+        createNewNoteForm.getTextAreaByName("note").setText(newNote);
+        viewCustomerPage = ((HtmlButton) addNotePage.getByXPath("//button[text() = 'Submit']").get(0)).click();
+
+        assertThat(viewCustomerPage.asText()).contains(newNote);
+
+        Set<String> notes = customerWithId(id).getNotes();
+        assertThat(notes.size()).isEqualTo(1);
+        assertThat(notes.iterator().next()).isEqualTo(newNote);
     }
 
     private void setStatus(long customerId, HtmlPage viewCustomerPage, CustomerStatus setToStatus) throws Exception {

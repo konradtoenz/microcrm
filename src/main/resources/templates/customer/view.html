@@ -63,17 +63,19 @@
         <tr>
             <th scope="row">Notes</th>
             <td>
-                <div data-th-each="note : ${customer.notes}" class="card">
+                <div data-th-each="note : ${customer.notes}" class="card" style="margin-bottom: 1em;">
                     <div data-th-text="${note}" class="card-body">Note</div>
+                    <a data-th-href="@{'/customers/' + ${customer.id} + '/notes/new?existingNote=' + ${note}}"
+                       class="card-link" style="margin: 0.5em;">Edit</a>
                 </div>
+                <a name="add_note_anchor" data-th-href="@{'/customers/' + ${customer.id} + '/notes/new'}">
+                    <button class="btn btn-primary">Add Note</button>
+                </a>
             </td>
             <td></td>
         </tr>
         </tbody>
     </table>
-    <a name="add_note_anchor" data-th-href="@{'/customers/' + ${customer.id} + '/notes/new'}">
-        <button class="btn btn-primary">Add Note</button>
-    </a>
 </div>
 </body>
 </html>

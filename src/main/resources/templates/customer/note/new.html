@@ -14,7 +14,7 @@
 
 <body>
 <nav class="navbar navbar-expand-lg navbar-light bg-light">
-    <span class="navbar-brand">Add Note</span>
+    <span class="navbar-brand" data-th-text="${existingNote} ? 'Edit Note' : 'Add Note'">Add Note</span>
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
             aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
@@ -32,10 +32,12 @@
 </nav>
 <div class="container-fluid">
     <form name="new_note" data-th-action="@{'/customers/' + ${customerId} + '/notes'}" method="post">
+        <input type="hidden" name="existingNote" data-th-value="${existingNote}">
 
         <div class="form-group">
             <label for="note">Note</label>
-            <textarea id="note" name="note" class="form-control" rows="3" maxlength="200"></textarea>
+            <textarea id="note" name="note" data-th-text="${existingNote}"
+                      class="form-control" rows="3" maxlength="200"></textarea>
         </div>
 
         <button class="btn btn-primary">Submit</button>

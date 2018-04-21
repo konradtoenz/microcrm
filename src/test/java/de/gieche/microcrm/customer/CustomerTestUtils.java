@@ -16,20 +16,24 @@ final class CustomerTestUtils {
     }
 
     static Customer randomCustomer() {
+        return randomCustomer(randomNotes());
+    }
+
+    static Customer randomCustomer(Set<String> notes) {
         Customer customer = new Customer();
         customer.setName(randomAlphabetic(16));
         customer.setStreet(randomAlphabetic(16) + randomNumeric(2));
         customer.setZipCode(randomNumeric(5));
         customer.setCity(randomAlphabetic(12));
-        customer.setNotes(randomNotes());
+        customer.setNotes(notes);
 
         return customer;
     }
 
     private static Set<String> randomNotes() {
         HashSet<String> notes = new HashSet<>();
-        for (int i = 0; i < RandomUtils.nextInt(0, 9); i++) {
-            notes.add(random(128));
+        for (int i = 0; i < RandomUtils.nextInt(1, 9); i++) {
+            notes.add(randomAlphabetic(128));
         }
 
         return notes;

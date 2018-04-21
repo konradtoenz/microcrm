@@ -4,11 +4,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
@@ -30,8 +32,11 @@ public class CustomerController {
     }
 
     @RequestMapping(path = "/{id}/notes/new", method = GET)
-    public ModelAndView newNote(@PathVariable("id") String id) {
-        return new ModelAndView("customer/note/new", "customerId", id);
+    public ModelAndView newNote(@PathVariable("id") String id, @RequestParam() Optional<String> existingNote) {
+        ModelAndView modelAndView = new ModelAndView("customer/note/new", "customerId", id);
+        existingNote.ifPresent(note -> modelAndView.addObject("existingNote", note));
+
+        return modelAndView;
     }
 
     @RequestMapping(method = POST)
@@ -65,9 +70,13 @@ public class CustomerController {
     }
 
     @RequestMapping(path = "/{id}/notes", method = POST)
-    public String addNote(@PathVariable long id, String note) {
+    public String upsertNote(@PathVariable long id, String note, Optional<String> existingNote) {
         Customer customer = this.customerRepository.findById(id).orElseThrow(RuntimeException::new);
-        customer.getNotes().add(note);
+
+        Set<String> notes = customer.getNotes();
+        existingNote.ifPresent(notes::remove);
+        notes.add(note);
+
         this.customerRepository.save(customer);
 
         return "redirect:/customers/" + id;
