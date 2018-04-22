@@ -1,6 +1,5 @@
 package de.gieche.microcrm.customer;
 
-import com.gargoylesoftware.htmlunit.Page;
 import com.gargoylesoftware.htmlunit.WebClient;
 import com.gargoylesoftware.htmlunit.html.HtmlButton;
 import com.gargoylesoftware.htmlunit.html.HtmlForm;
@@ -9,6 +8,7 @@ import org.flywaydb.test.FlywayTestExecutionListener;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.test.context.TestExecutionListeners;
@@ -17,6 +17,7 @@ import org.springframework.test.context.support.DependencyInjectionTestExecution
 
 import java.io.IOException;
 
+import static de.gieche.microcrm.customer.CustomerTestUtils.randomCustomer;
 import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -30,6 +31,9 @@ abstract class WebClientTest {
     @LocalServerPort
     private String localServerPort;
 
+    @Autowired
+    CustomerRepository customerRepository;
+
     private WebClient webClient;
 
     @Before
@@ -42,7 +46,7 @@ abstract class WebClientTest {
         this.webClient.close();
     }
 
-    private HtmlPage gotoNewCustomerPage() throws IOException {
+    HtmlPage gotoNewCustomerPage() throws IOException {
         return this.webClient.getPage(baseUrl() + "new");
     }
 
@@ -58,28 +62,11 @@ abstract class WebClientTest {
         return format(URL_PATTERN, this.localServerPort);
     }
 
-    long createCustomer(Customer customer) throws java.io.IOException {
-        HtmlPage createNewCustomerPage = gotoNewCustomerPage();
-        HtmlForm createNewCustomerForm = createNewCustomerPage.getFormByName("new_customer");
-        createNewCustomerForm.getInputByName("name").type(customer.getName());
-        createNewCustomerForm.getInputByName("street").type(customer.getStreet());
-        createNewCustomerForm.getInputByName("zipCode").type(customer.getZipCode());
-        createNewCustomerForm.getInputByName("city").type(customer.getCity());
-
-        HtmlPage viewCustomerPage = createNewCustomerForm.getButtonByName("save").click();
-        assertThat(viewCustomerPage.asText()).contains(customer.getName());
-        assertThat(viewCustomerPage.asText()).contains(customer.getStatus().toString());
-
-        for (String note : customer.getNotes()) {
-            createNote(viewCustomerPage, note);
-        }
-
-        String path = viewCustomerPage.getUrl().getPath();
-
-        return Long.parseLong(path.substring(path.lastIndexOf('/') + 1));
+    Customer randomPersistedCustomer() {
+        return this.customerRepository.save(randomCustomer());
     }
 
-    private static void createNote(final HtmlPage viewCustomerPage, String note) throws IOException {
+    static void createNote(final HtmlPage viewCustomerPage, String note) throws IOException {
         HtmlPage addNotePage = viewCustomerPage.getAnchorByName("add_note_anchor").click();
         assertThat(addNotePage.asText()).contains("Add Note");
 
@@ -87,5 +74,10 @@ abstract class WebClientTest {
         createNewNoteForm.getTextAreaByName("note").type(note);
         HtmlPage page = ((HtmlButton) addNotePage.getByXPath("//button[text() = 'Submit']").get(0)).click();
         assertThat(page.asText()).contains(note);
+    }
+
+    Customer customerWithId(long id) {
+        return this.customerRepository.findById(id)
+                .orElseThrow(() -> new AssertionError("Customer with ID >" + id + "< could not be found."));
     }
 }

@@ -8,7 +8,6 @@ import com.gargoylesoftware.htmlunit.html.HtmlTableRow;
 import org.assertj.core.api.ObjectAssert;
 import org.flywaydb.test.annotation.FlywayTest;
 import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -28,14 +27,28 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class CustomerHtmlUnitTest extends WebClientTest {
 
-    @Autowired
-    private CustomerRepository customerRepository;
-
     @Test
     @FlywayTest
     public void should_create_new_customer() throws Exception {
         Customer customer = randomCustomer();
-        long id = createCustomer(customer);
+        HtmlPage createNewCustomerPage = gotoNewCustomerPage();
+        HtmlForm createNewCustomerForm = createNewCustomerPage.getFormByName("new_customer");
+        createNewCustomerForm.getInputByName("name").type(customer.getName());
+        createNewCustomerForm.getInputByName("street").type(customer.getStreet());
+        createNewCustomerForm.getInputByName("zipCode").type(customer.getZipCode());
+        createNewCustomerForm.getInputByName("city").type(customer.getCity());
+
+        HtmlPage viewCustomerPage = createNewCustomerForm.getButtonByName("save").click();
+        assertThat(viewCustomerPage.asText()).contains(customer.getName());
+        assertThat(viewCustomerPage.asText()).contains(customer.getStatus().toString());
+
+        for (String note : customer.getNotes()) {
+            createNote(viewCustomerPage, note);
+        }
+
+        String path = viewCustomerPage.getUrl().getPath();
+
+        long id = Long.parseLong(path.substring(path.lastIndexOf('/') + 1));
 
         assertThat(this.customerRepository.count()).isEqualTo(1);
 
@@ -48,9 +61,9 @@ public class CustomerHtmlUnitTest extends WebClientTest {
 
     @Test
     public void should_list_customers() throws Exception {
-        createCustomer(randomCustomer());
-        createCustomer(randomCustomer());
-        createCustomer(randomCustomer());
+        randomPersistedCustomer();
+        randomPersistedCustomer();
+        randomPersistedCustomer();
 
         HtmlPage listCustomersPage = gotoCustomerListPage();
         for (Customer customer : this.customerRepository.findAll()) {
@@ -63,8 +76,7 @@ public class CustomerHtmlUnitTest extends WebClientTest {
 
     @Test
     public void should_have_links_to_details_in_list() throws Exception {
-        Customer customer = randomCustomer();
-        createCustomer(customer);
+        Customer customer = randomPersistedCustomer();
 
         HtmlPage listCustomersPage = gotoCustomerListPage();
         HtmlTableRow row = (HtmlTableRow)
@@ -82,7 +94,7 @@ public class CustomerHtmlUnitTest extends WebClientTest {
 
     @Test
     public void should_set_status() throws Exception {
-        long id = createCustomer(randomCustomer());
+        long id = randomPersistedCustomer().getId();
 
         setStatus(id, gotoCustomerDetailsPage(id), CURRENT);
         setStatus(id, gotoCustomerDetailsPage(id), NON_ACTIVE);
@@ -94,7 +106,7 @@ public class CustomerHtmlUnitTest extends WebClientTest {
         HashSet<String> existingNotes = new HashSet<>();
         String existingNote = random(128);
         existingNotes.add(existingNote);
-        long id = createCustomer(CustomerTestUtils.randomCustomer(existingNotes));
+        long id = this.customerRepository.save(randomCustomer(existingNotes)).getId();
 
         HtmlPage viewCustomerPage = gotoCustomerDetailsPage(id);
         HtmlPage addNotePage = viewCustomerPage.getAnchorByText("Edit").click();
@@ -137,7 +149,7 @@ public class CustomerHtmlUnitTest extends WebClientTest {
         List<String> values = new ArrayList<>();
         for (int i = 0; i < 9; i++) {
             Customer customer = randomCustomer();
-            createCustomer(customer);
+            this.customerRepository.save(customer);
             values.add(getSortedValue.apply(customer));
         }
         Collections.sort(values);
@@ -180,10 +192,5 @@ public class CustomerHtmlUnitTest extends WebClientTest {
         }
 
         return statusButton;
-    }
-
-    private Customer customerWithId(long id) {
-        return this.customerRepository.findById(id)
-                .orElseThrow(() -> new AssertionError("Customer with ID >" + id + "< could not be found."));
     }
 }
