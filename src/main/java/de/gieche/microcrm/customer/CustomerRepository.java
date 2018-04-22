@@ -1,7 +1,7 @@
 package de.gieche.microcrm.customer;
 
-import org.springframework.data.repository.PagingAndSortingRepository;
+import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface CustomerRepository extends PagingAndSortingRepository<Customer, Long> {
+public interface CustomerRepository extends JpaRepository<Customer, Long> {
 
 }

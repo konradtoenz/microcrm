@@ -10,6 +10,7 @@ import org.flywaydb.test.annotation.FlywayTest;
 import org.junit.Test;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
@@ -21,6 +22,11 @@ import static de.gieche.microcrm.customer.CustomerStatus.CURRENT;
 import static de.gieche.microcrm.customer.CustomerStatus.NON_ACTIVE;
 import static de.gieche.microcrm.customer.CustomerStatus.PROSPECTIVE;
 import static de.gieche.microcrm.customer.CustomerTestUtils.randomCustomer;
+import static de.gieche.microcrm.customer.CustomerTestUtils.randomCustomerWithCity;
+import static de.gieche.microcrm.customer.CustomerTestUtils.randomCustomerWithName;
+import static de.gieche.microcrm.customer.CustomerTestUtils.randomCustomerWithNotes;
+import static de.gieche.microcrm.customer.CustomerTestUtils.randomCustomerWithStreet;
+import static de.gieche.microcrm.customer.CustomerTestUtils.randomCustomerWithZipCode;
 import static org.apache.commons.lang3.RandomStringUtils.random;
 import static org.apache.commons.lang3.RandomStringUtils.randomAlphabetic;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -102,11 +108,43 @@ public class CustomerHtmlUnitTest extends WebClientTest {
     }
 
     @Test
+    public void should_filter_list() throws Exception {
+        String filterTerm = randomAlphabetic(6);
+        List<Customer> customersWithFilterTerm = Arrays.asList(
+                // Tests name starting, containing and ending with filter term.
+                this.customerRepository.save(randomCustomerWithName(filterTerm + randomAlphabetic(16))),
+                this.customerRepository.save(
+                        randomCustomerWithName(randomAlphabetic(16) + filterTerm + randomAlphabetic(16))),
+                this.customerRepository.save(randomCustomerWithName(randomAlphabetic(16) + filterTerm)),
+
+                // The other properties are simply tested with the filter term.
+                this.customerRepository.save(randomCustomerWithStreet(filterTerm)),
+                this.customerRepository.save(randomCustomerWithZipCode(filterTerm)),
+                this.customerRepository.save(randomCustomerWithCity(filterTerm)));
+        List<Customer> customersWithoutFilterTerm = Arrays.asList(randomPersistedCustomer(), randomPersistedCustomer());
+
+        HtmlPage customerListPage = gotoCustomerListPage();
+        customersWithFilterTerm.stream().map(Customer::getName)
+                .forEach(customerName -> assertThat(customerListPage.asText()).contains(customerName));
+        customersWithoutFilterTerm.stream().map(Customer::getName)
+                .forEach(customerName -> assertThat(customerListPage.asText()).contains(customerName));
+
+        HtmlForm filterForm = customerListPage.getFormByName("filter_form");
+        filterForm.getInputByName("filter_by").type(filterTerm);
+
+        String filteredPageContent = filterForm.getButtonByName("submit").<HtmlPage>click().asText();
+        customersWithFilterTerm.stream().map(Customer::getName)
+                .forEach(customerName -> assertThat(filteredPageContent).contains(customerName));
+        customersWithoutFilterTerm.stream().map(Customer::getName)
+                .forEach(customerName -> assertThat(filteredPageContent).doesNotContain(customerName));
+    }
+
+    @Test
     public void should_edit_note() throws Exception {
         HashSet<String> existingNotes = new HashSet<>();
         String existingNote = random(128);
         existingNotes.add(existingNote);
-        long id = this.customerRepository.save(randomCustomer(existingNotes)).getId();
+        long id = this.customerRepository.save(randomCustomerWithNotes(existingNotes)).getId();
 
         HtmlPage viewCustomerPage = gotoCustomerDetailsPage(id);
         HtmlPage addNotePage = viewCustomerPage.getAnchorByText("Edit").click();

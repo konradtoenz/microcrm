@@ -1,6 +1,8 @@
 package de.gieche.microcrm.customer;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Example;
+import org.springframework.data.domain.ExampleMatcher;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -54,10 +56,26 @@ public class CustomerController {
     }
 
     @RequestMapping(method = GET)
-    public ModelAndView listCustomers(@RequestParam(name = "sort_by") Optional<String> sortByParam) {
+    public ModelAndView listCustomers(
+            @RequestParam(name = "sort_by") Optional<String> sortByParam,
+            @RequestParam(name = "filter_by") Optional<String> filterByParam) {
         List<Customer> customers = new ArrayList<>();
-        String sortBy = sortByParam.map(value -> LOWER_UNDERSCORE.to(LOWER_CAMEL, value)).orElse("name");
-        this.customerRepository.findAll(Sort.by(sortBy)).forEach(customers::add);
+        if (filterByParam.isPresent()) {
+            Customer probe = new Customer();
+            probe.setName(filterByParam.get());
+            probe.setStreet(filterByParam.get());
+            probe.setZipCode(filterByParam.get());
+            probe.setCity(filterByParam.get());
+
+            ExampleMatcher matcher =
+                    ExampleMatcher.matchingAny().withStringMatcher(ExampleMatcher.StringMatcher.CONTAINING)
+                    .withIgnorePaths("createdOn", "status", "notes");
+            Example<Customer> example = Example.of(probe, matcher);
+            customers.addAll(this.customerRepository.findAll(example));
+        } else {
+            String sortBy = sortByParam.map(value -> LOWER_UNDERSCORE.to(LOWER_CAMEL, value)).orElse("name");
+            customers.addAll(this.customerRepository.findAll(Sort.by(sortBy)));
+        }
 
         return new ModelAndView("customer/list", "customers", customers);
     }
